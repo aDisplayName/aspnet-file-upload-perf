@@ -12,11 +12,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FileUploadPerformance.ApiService\FileUploadPerformance.ApiService.csproj" />
-    <ProjectReference Include="..\FileUploadPerformance.Web\FileUploadPerformance.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.0" />
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.2" />
   </ItemGroup>
 
 </Project>
