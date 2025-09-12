@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="FileUploadPerformance.ApiService/FileUploadPerformance.ApiService.csproj" />
+  <Project Path="FileUploadPerformance.AppHost/FileUploadPerformance.AppHost.csproj" />
+  <Project Path="FileUploadPerformance.ServiceDefaults/FileUploadPerformance.ServiceDefaults.csproj" />
+  <Project Path="FileUploadPerformance.Web/FileUploadPerformance.Web.csproj" />
+</Solution>
