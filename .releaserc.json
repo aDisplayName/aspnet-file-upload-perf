@@ -1,0 +1,15 @@
+{
+  "branches": [
+    {
+      "name": "main",
+      "prerelease": "beta"
+    },
+    {
+      "name": "develop",
+      "prerelease": "alpha"
+    },
+    {
+      "name": "release"
+    }
+  ]
+}
