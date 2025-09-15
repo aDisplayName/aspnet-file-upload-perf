@@ -1,0 +1,11 @@
+# Installer Offline Kit Upload Storage
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ include "storageVol" .  }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.storage.pvcSize }}

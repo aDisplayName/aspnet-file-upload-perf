@@ -1,0 +1,32 @@
+fullname: asp-file-upload
+deployment:
+  maxFileUploadLimit: "20000000000"
+  image:
+    # -- Controller image repository.
+    repository: ghcr.io/adisplayname/aspnet-file-upload-perf
+    # -- Controller image pull policy
+    pullPolicy: IfNotPresent
+    # -- Controller image tag. Default chart appVersion
+    tag: ""  
+  resources:
+    requests:
+      # -- Cpu requests for the controller pod
+      cpu: "50m"
+      # -- Memory requests for the controller pod
+      memory: "50Mi"
+    limits:
+      # -- Cpu limits for the controller pod
+      cpu: "1"
+      # -- Memory limits for the controller pod
+      memory: "512Mi"
+storage:
+  pvcSize: "50Gi"
+service:
+  port: 80
+  nodePort:
+    enabled: false
+    port: 35001  # The node port used when enabled.
+  traefik:
+    enalbed: false
+    entry: websecure
+    route: /file-upload
