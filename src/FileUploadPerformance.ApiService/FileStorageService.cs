@@ -5,7 +5,7 @@ using Microsoft.Net.Http.Headers;
 
 namespace FileUploadPerformance.ApiService;
 
-public class FileStorageService(IOptions<SystemSettings> settings) : IFileStorageService
+public class FileStorageService(IOptions<SystemSettings> settings, ILogger<FileStorageService> logger) : IFileStorageService
 {
     public async Task<IEnumerable<string>> GetFileListAsync(CancellationToken cancellationToken)
     {
@@ -72,6 +72,7 @@ public class FileStorageService(IOptions<SystemSettings> settings) : IFileStorag
                             // Pre-claim the storage to detect out of storage error as soon as possible.
                             targetStream.SetLength(srcLen);
                             targetStream.Seek(0, SeekOrigin.Begin);
+                            logger.LogInformation("Length of incoming data is set to {Length}.", srcLen);
                         }
                         catch (IOException)
                         {
@@ -82,8 +83,14 @@ public class FileStorageService(IOptions<SystemSettings> settings) : IFileStorag
                             // Ignore if otherwise.
                         }
                     }
-
+                    else
+                    {
+                        logger.LogInformation("Length of incoming data is unknown.");
+                        
+                    }
+                    logger.LogInformation("Storing incoming data.");
                     await section.Body.CopyToAsync(targetStream, ctx);
+                    logger.LogInformation("File has been saved.");
                     return originalFilename;
                 }
             }
