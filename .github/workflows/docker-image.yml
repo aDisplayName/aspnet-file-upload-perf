@@ -9,7 +9,7 @@ on:
 
 
 env:
-  COMMIT_NAME: aDisplayNam3
+  COMMIT_NAME: aDisplayName
   COMMIT_EMAIL: mattali@gmail.com
 
 jobs:
@@ -162,6 +162,11 @@ jobs:
       PRERELEASE: ${{ needs.semver.outputs.prerelease }}
       GHCR_IMAGE: "ghcr.io/adisplayname/aspnet-file-upload-perf"
     steps:
+      - name: Configure git
+        run: |
+          set -euo pipefail
+          git config --global user.name '${{ env.COMMIT_NAME }}'
+          git config --global user.email '${{ env.COMMIT_EMAIL }}'
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
