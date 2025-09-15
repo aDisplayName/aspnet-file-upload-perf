@@ -13,29 +13,47 @@ env:
   COMMIT_EMAIL: mattali@gmail.com
 
 jobs:
-  build:
+  semver:
+    name: Semantic Version
     runs-on: ubuntu-latest
+    outputs:
+      last: ${{ steps.release.outputs.last_release_version }}
+      published: ${{ steps.release.outputs.new_release_published }}
+      channel: ${{ steps.release.outputs.new_release_channel }}
+      version: ${{ steps.release.outputs.new_release_version }}
+      major: ${{ steps.release.outputs.new_release_major_version }}
+      minor: ${{ steps.release.outputs.new_release_minor_version }}
+      patch: ${{ steps.release.outputs.new_release_patch_version }}
+      notes: ${{ steps.release.outputs.new_release_notes }}
+      prerelease: ${{ steps.inspect.outputs.prerelease }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        path: repository
     - name: Run semantic-release (dry-run)
-      id: dry-run
+      id: release
       uses: cycjimmy/semantic-release-action@v4
       with:
-        dry_run: true
+        working_directory: repository
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_COMMITTER_NAME: ${{ env.COMMIT_NAME }}
+        GIT_COMMITTER_EMAIL: ${{ env.COMMIT_EMAIL }}
+        GIT_AUTHOR_NAME: ${{ env.COMMIT_NAME }}
+        GIT_AUTHOR_EMAIL: ${{ env.COMMIT_EMAIL }}
     - name: Inspect semantic-release (dry-run) outcome
       shell: python
+      id: inspect
       env:
         PYTHONPATH: ${{ github.workspace }}/.github
-        SR_LAST: ${{ steps.dry-run.outputs.last_release_version }}
-        SR_PUBLISHED: ${{ steps.dry-run.outputs.new_release_published }}
-        SR_CHANNEL: ${{ steps.dry-run.outputs.new_release_channel }}
-        SR_VERSION: ${{ steps.dry-run.outputs.new_release_version }}
-        SR_MAJOR: ${{ steps.dry-run.outputs.new_release_major_version }}
-        SR_MINOR: ${{ steps.dry-run.outputs.new_release_minor_version }}
-        SR_PATCH: ${{ steps.dry-run.outputs.new_release_patch_version }}
-        SR_NOTES: ${{ steps.dry-run.outputs.new_release_notes }}
+        SR_LAST: ${{ steps.release.outputs.last_release_version }}
+        SR_PUBLISHED: ${{ steps.release.outputs.new_release_published }}
+        SR_CHANNEL: ${{ steps.release.outputs.new_release_channel }}
+        SR_VERSION: ${{ steps.release.outputs.new_release_version }}
+        SR_MAJOR: ${{ steps.release.outputs.new_release_major_version }}
+        SR_MINOR: ${{ steps.release.outputs.new_release_minor_version }}
+        SR_PATCH: ${{ steps.release.outputs.new_release_patch_version }}
+        SR_NOTES: ${{ steps.release.outputs.new_release_notes }}
       run: |
         from lib import *
         import os
@@ -55,6 +73,70 @@ jobs:
         assert_equality((
             (os.environ['SR_PUBLISHED'], 'true'),
         ))
-    # - name: Build the Docker image
-    #   run: docker build . --file Dockerfile --tag ghcr.io/adisplay:$(date +%s)
 
+  build:
+    needs:
+    - semver
+    runs-on: ubuntu-latest
+    env:
+      HELM_DOCS_VERSION: "1.11.0"
+      CR_VERSION: "1.4.1"
+      VERSION: ${{ needs.semver.outputs.version }}
+      ASSVERSION: ${{ needs.semver.outputs.major}}.${{ needs.semver.outputs.minor }}.${{ needs.semver.outputs.patch }}.0
+      PRERELEASE: ${{ needs.semver.outputs.prerelease }}
+      GHCR_IMAGE: "ghcr.io/adisplayname/aspnet-file-upload-perf"
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: repository
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ env.COMMIT_NAME }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.GHCR_IMAGE }}
+      - name: Build container images
+        uses: docker/build-push-action@v6
+        with:
+          context: repository
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            "APP_VERSION=${{ env.ASSVERSION }}"
+          push: false
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ env.GHCR_IMAGE }}:${{ env.VERSION }}
+
+      - name: Push container images tag (Latest)
+        uses: docker/build-push-action@v6
+        if: ${{ env.PRERELEASE != 'true' }}
+        with:
+          context: repository
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            "APP_VERSION=${{ env.ASSVERSION }}"
+          push: true
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ env.GHCR_IMAGE }}:latest
+
+      - name: Push container images tag (Release)
+        uses: docker/build-push-action@v6
+        with:
+          context: repository
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            "APP_VERSION=${{ env.ASSVERSION }}"
+          push: true
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ env.GHCR_IMAGE }}:${{ env.VERSION }}
