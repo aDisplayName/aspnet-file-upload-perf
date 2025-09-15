@@ -25,7 +25,7 @@ jobs:
       minor: ${{ steps.release.outputs.new_release_minor_version }}
       patch: ${{ steps.release.outputs.new_release_patch_version }}
       notes: ${{ steps.release.outputs.new_release_notes }}
-      prerelease: ${{ steps.release.outputs.prerelease }}
+      prerelease: ${{ steps.inspect.outputs.prerelease }}
     steps:
     - uses: actions/checkout@v4
       with:
@@ -73,6 +73,13 @@ jobs:
         assert_equality((
             (os.environ['SR_PUBLISHED'], 'true'),
         ))
+
+        header('set the prerelease status')
+        is_prerelease = '-' in os.environ['SR_VERSION']
+        info('pre-release = {}'.format(is_prerelease))
+        output = '{}'.format(str(is_prerelease).lower())
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as outfile:
+            print (f'prerelease={output}', file=outfile)
 
   build:
     if: false
