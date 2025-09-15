@@ -1,0 +1,19 @@
+apiVersion: v2
+name: aspnet-file-upload-perf
+description: File Upload Sample on ASP.NET Core.
+type: application
+annotations:
+  artifacthub.io/containsSecurityUpdates: 'false'
+  artifacthub.io/prerelease: 'false'
+  artifacthub.io/license: MIT
+  artifacthub.io/changes: ''
+  artifacthub.io/links: |
+    - name: Chart Sources
+      url: https://github.com/aDisplayName/aspnet-file-upload-perf/tree/main/helm/aspnet-file-upload-perf
+    - name: Helm Repository
+      url: https://adisplayname.github.io/helm-charts/charts
+version: 0.0.0
+appVersion: 0.0.0
+home: https://github.com/aDisplayName/aspnet-file-upload-perf
+sources:
+  - https://github.com/aDisplayName/aspnet-file-upload-perf

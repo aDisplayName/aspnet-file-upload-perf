@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.fullname }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asp-file-upload
+  template:
+    metadata:
+      labels:
+        app: asp-file-upload
+    spec:
+      containers:
+        - name: cache-manager
+          image: "{{ .Values.deployment.image.repository }}:{{ .Values.deployment.image.tag | default .Chart.AppVersion }}"
+          env:
+          - name: RootFolder
+            value: /app/data
+          - name: MaxFileUploadLimit
+            value: {{ .Values.deployment.maxFileUploadLimit }}
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - mountPath: /app/data
+              name: file-storage
+          {{- with .Values.deployment.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+      - name: file-storage
+        persistentVolumeClaim:
+          claimName: {{ include "storageVol" .  }}
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.fullname }}
+spec:
+  ports:
+  - name: api
+    port: 80
+    targetPort: http
+  selector:
+    app: asp-file-upload
+
+---
+
+{{ if .Values.service.nodePort.enabled }}
+---
+apiVersion: v1
+kind: Service
+type: NodePort
+metadata:
+  name: {{ .Values.fullname }}-np
+spec:
+  ports:
+  - name: api
+    nodePort: {{ .Values.service.nodePort.port }}
+    port: {{ .Values.service.port }}
+    targetPort: http
+  selector:
+    app: asp-file-upload
+
+---
+
+{{ end }}
+--- 
+{{ if .Values.service.traefik.enabled }}
+---
+
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Values.fullname }}
+spec:
+  entryPoints:
+    - {{ .Values.service.traefik.entry }}
+  routes:
+  - kind: Rule
+    match: PathPrefix(`{{ .Values.service.traefik.route }}`)
+    priority: 60
+    middlewares:
+    - name: {{ .Values.fullname }}-strip-route
+    services:
+    - name: {{ .Values.fullname }}
+      port: {{ .Values.service.port }}
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ .Values.fullname }}-strip-route
+spec:
+  stripPrefix:
+    prefixes:
+    - {{ .Values.service.traefik.route }}
+
+---
+
+{{ end }}
