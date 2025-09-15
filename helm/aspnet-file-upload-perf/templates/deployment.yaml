@@ -16,6 +16,8 @@ spec:
         - name: cache-manager
           image: "{{ .Values.deployment.image.repository }}:{{ .Values.deployment.image.tag | default .Chart.AppVersion }}"
           env:
+          - name: ASPNETCORE_ENVIRONMENT
+            value: 'Development'
           - name: RootFolder
             value: /app/data
           - name: MaxFileUploadLimit
