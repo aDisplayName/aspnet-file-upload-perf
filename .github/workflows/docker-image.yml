@@ -25,7 +25,7 @@ jobs:
       minor: ${{ steps.release.outputs.new_release_minor_version }}
       patch: ${{ steps.release.outputs.new_release_patch_version }}
       notes: ${{ steps.release.outputs.new_release_notes }}
-      prerelease: ${{ steps.inspect.outputs.prerelease }}
+      prerelease: ${{ steps.release.outputs.prerelease }}
     steps:
     - uses: actions/checkout@v4
       with:
