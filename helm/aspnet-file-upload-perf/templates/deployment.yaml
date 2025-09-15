@@ -19,7 +19,7 @@ spec:
           - name: RootFolder
             value: /app/data
           - name: MaxFileUploadLimit
-            value: {{ .Values.deployment.maxFileUploadLimit }}
+            value: {{ .Values.deployment.maxFileUploadLimit | quote }}
           ports:
             - containerPort: 8080
               name: http

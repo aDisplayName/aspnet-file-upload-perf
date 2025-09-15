@@ -1,6 +1,6 @@
 fullname: asp-file-upload
 deployment:
-  maxFileUploadLimit: 20000000000
+  maxFileUploadLimit: "20000000000"
   image:
     # -- Controller image repository.
     repository: ghcr.io/adisplayname/aspnet-file-upload-perf
