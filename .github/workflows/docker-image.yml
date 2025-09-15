@@ -45,7 +45,7 @@ jobs:
       shell: python
       id: inspect
       env:
-        PYTHONPATH: ${{ github.workspace }}/.github
+        PYTHONPATH: ${{ github.workspace }}/repository/.github
         SR_LAST: ${{ steps.release.outputs.last_release_version }}
         SR_PUBLISHED: ${{ steps.release.outputs.new_release_published }}
         SR_CHANNEL: ${{ steps.release.outputs.new_release_channel }}
